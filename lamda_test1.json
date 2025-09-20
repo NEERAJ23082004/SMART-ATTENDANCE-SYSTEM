@@ -1,0 +1,4 @@
+{
+    "_comment1": "register_face Json code",
+    "body": "{\"operation\": \"register_face\", \"image\": \"<BASE64_IMAGE_STRING>\", \"employee_id\": \"EMP001\", \"employee_name\": \"TYPE_YOUR_NAME\"}"
+}
