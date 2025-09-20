@@ -1,0 +1,294 @@
+import json
+import boto3
+import base64
+from datetime import datetime
+import uuid
+from decimal import Decimal
+
+rekognition = boto3.client('rekognition')
+dynamodb = boto3.resource('dynamodb')
+s3 = boto3.client('s3')
+
+BUCKET_NAME = 'myattendance-app'
+DYNAMODB_TABLE = 'EmployeeAttendance'
+EMPLOYEE_COLLECTION = 'employee_faces'
+
+def lambda_handler(event, context):
+    # Universal CORS headers (EXACT casing)
+    headers = {
+        # 'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,PUT,DELETE',
+        'Content-Type': 'application/json'
+    }
+
+    try:
+        # Determine HTTP method from event
+        method = event.get('httpMethod')
+        if not method and event.get('requestContext'):
+            method = event['requestContext'].get('http', {}).get('method')
+
+        # Handle CORS preflight
+        if method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'message': 'CORS preflight'})
+            }
+
+        # Safely load JSON body
+        body = event.get('body') or '{}'
+        if isinstance(body, str):
+            try:
+                body = json.loads(body)
+            except Exception:
+                body = {}
+
+        operation = body.get('operation')
+
+        if operation == 'mark_attendance':
+            return mark_attendance(body, headers)
+        elif operation == 'get_attendance':
+            return get_attendance(body, headers)
+        elif operation == 'register_face':
+            return register_face(body, headers)
+        else:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': 'Invalid operation'})
+            }
+
+    except Exception as e:
+        print(f"Lambda error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+
+
+
+
+def mark_attendance(body, headers):
+    try:
+        image_data = body.get('image')
+        user_id = body.get('user_id', 'anonymous')
+
+        if not image_data:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': 'No image data provided'})
+            }
+
+        if image_data.startswith('data:image'):
+            image_data = image_data.split(',')[1]
+
+        image_bytes = base64.b64decode(image_data)
+
+        response = rekognition.search_faces_by_image(
+            CollectionId=EMPLOYEE_COLLECTION,
+            Image={'Bytes': image_bytes},
+            FaceMatchThreshold=60,
+            MaxFaces=1
+        )
+
+        if not response.get('FaceMatches'):
+            return {
+                'statusCode': 404,
+                'headers': headers,
+                'body': json.dumps({'error': 'Face not recognized. Please contact HR to register your face.'})
+            }
+
+        best_match = response['FaceMatches'][0]
+        face_id = best_match['Face']['FaceId']
+        confidence = best_match['Similarity']
+        external_image_id = best_match['Face'].get('ExternalImageId', face_id)
+
+        if '_' in external_image_id:
+            employee_id, employee_name = external_image_id.split('_', 1)
+            employee_name = employee_name.replace('_', ' ')
+        else:
+            employee_id = external_image_id
+            employee_name = f"Employee_{face_id[:8]}"
+
+        table = dynamodb.Table(DYNAMODB_TABLE)
+        current_time = datetime.now()
+
+        attendance_record = {
+            'userId': employee_id,
+            'checkin_timestamp': current_time.isoformat(),
+            'employee_name': employee_name,
+            'face_id': face_id,
+            'confidence': Decimal(str(round(confidence, 2))),
+            'date': current_time.strftime('%Y-%m-%d'),
+            'time': current_time.strftime('%H:%M:%S'),
+            'status': 'present',
+            'attendance_id': str(uuid.uuid4())
+        }
+
+        table.put_item(Item=attendance_record)
+
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({
+                'message': 'Attendance marked successfully',
+                'employee_name': employee_name,
+                'employee_id': employee_id,
+                'confidence': confidence,
+                'timestamp': attendance_record['checkin_timestamp'],
+                'date': attendance_record['date'],
+                'time': attendance_record['time']
+            })
+        }
+
+    except rekognition.exceptions.InvalidParameterException:
+        return {
+            'statusCode': 400,
+            'headers': headers,
+            'body': json.dumps({'error': 'Invalid image format or no face detected in image'})
+        }
+    except rekognition.exceptions.ResourceNotFoundException:
+        return {
+            'statusCode': 404,
+            'headers': headers,
+            'body': json.dumps({'error': f'Rekognition collection \"{EMPLOYEE_COLLECTION}\" not found. Please create the collection first.'})
+        }
+    except Exception as e:
+        print(f"Error in mark_attendance: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+
+
+def get_attendance(body, headers):
+    try:
+        date = body.get('date', datetime.now().strftime('%Y-%m-%d'))
+        table = dynamodb.Table(DYNAMODB_TABLE)
+        response = table.scan()
+
+        records = []
+        for item in response.get('Items', []):
+            if item.get('date') == date:
+                records.append({
+                    'employee_id': item.get('userId', 'N/A'),
+                    'employee_name': item.get('employee_name', 'Unknown'),
+                    'check_in_time': item.get('checkin_timestamp', ''),
+                    'date': item.get('date', ''),
+                    'time': item.get('time', ''),
+                    'confidence': item.get('confidence', 0),
+                    'status': item.get('status', 'present')
+                })
+
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({
+                'attendance_records': records,
+                'total_count': len(records),
+                'date': date
+            })
+        }
+    except Exception as e:
+        print(f"Error in get_attendance: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+
+
+def register_face(body, headers):
+    try:
+        image_data = body.get('image')
+        employee_id = body.get('employee_id')
+        employee_name = body.get('employee_name')
+
+        if not all([image_data, employee_id, employee_name]):
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': 'Missing required fields: image, employee_id, employee_name'})
+            }
+
+        if image_data.startswith('data:image'):
+            image_data = image_data.split(',')[1]
+
+        image_bytes = base64.b64decode(image_data)
+
+        try:
+            rekognition.describe_collection(CollectionId=EMPLOYEE_COLLECTION)
+        except rekognition.exceptions.ResourceNotFoundException:
+            rekognition.create_collection(CollectionId=EMPLOYEE_COLLECTION)
+
+        response = rekognition.index_faces(
+            CollectionId=EMPLOYEE_COLLECTION,
+            Image={'Bytes': image_bytes},
+            ExternalImageId=f"{employee_id}{employee_name.replace(' ', '')}",
+            MaxFaces=1,
+            QualityFilter="AUTO",
+            DetectionAttributes=['ALL']
+        )
+
+        if response['FaceRecords']:
+            face_id = response['FaceRecords'][0]['Face']['FaceId']
+
+            s3_key = f"employee-photos/{employee_id}{employee_name.replace(' ', '')}.jpg"
+            s3.put_object(
+                Bucket=BUCKET_NAME,
+                Key=s3_key,
+                Body=image_bytes,
+                ContentType='image/jpg'
+            )
+
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Face registered successfully',
+                    'employee_id': employee_id,
+                    'employee_name': employee_name,
+                    'face_id': face_id,
+                    's3_location': s3_key
+                })
+            }
+        else:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': 'No face detected in the image'})
+            }
+    except Exception as e:
+        print(f"Error in register_face: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
