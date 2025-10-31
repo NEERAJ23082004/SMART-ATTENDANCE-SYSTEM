@@ -1,0 +1,49 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:GetRecords",
+				"dynamodb:GetShardIterator",
+				"dynamodb:DescribeStream",
+				"dynamodb:ListStreams",
+				"dynamodb:PutItem"
+			],
+			"Resource": "arn:aws:dynamodb:us-east-1:346890049421:table/EmployeeAttendance/stream/*"
+		}
+	]
+}
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"rekognition:DescribeCollection",
+				"rekognition:SearchFacesByImage",
+				"rekognition:ListFaces",
+				"rekognition:IndexFaces"
+			],
+			"Resource": "*"
+		}
+	]
+}
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:GetRecords",
+				"dynamodb:GetShardIterator",
+				"dynamodb:DescribeStream",
+				"dynamodb:ListStreams"
+			],
+			"Resource": "arn:aws:dynamodb:us-east-1:346890049421:table/AttendanceRecords123/stream/*"
+		}
+	]
+}
+
+
+
