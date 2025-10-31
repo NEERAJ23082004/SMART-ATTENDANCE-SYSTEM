@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Attendance</title>
+    <title>Attendance System</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 30%, #fff9c4 70%, #ffecb3 100%);
+            background: linear-gradient(135deg, #fafcfd 0%, #f3e5f5 30%, #f4f4f0 70%, #e9e8e5 100%);
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -25,7 +25,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 40px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(233, 236, 237, 0.9);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
@@ -33,7 +33,7 @@
         .logo {
             font-size: 2rem;
             font-weight: bold;
-            color: #1976d2;
+            color: #207f84;
             cursor: pointer;
         }
 
@@ -54,22 +54,22 @@
 
         .btn-outline {
             background: transparent;
-            border: 2px solid #1976d2;
+            border: 2px solid #9eea5d;
             color: #1976d2;
         }
 
         .btn-outline:hover {
-            background: #1976d2;
+            background: hsl(210, 80%, 76%);
             color: white;
         }
 
         .btn-primary {
-            background: #1976d2;
+            background: #364350;
             color: white;
         }
 
         .btn-primary:hover {
-            background: #1565c0;
+            background: #99bae0;
             transform: translateY(-2px);
         }
 
@@ -98,7 +98,7 @@
         .hero-subtitle {
             font-size: 3rem;
             font-weight: 300;
-            color: #1976d2;
+            color: #77a1cb;
             margin-bottom: 40px;
         }
 
@@ -136,7 +136,7 @@
         }
 
         .btn-user {
-            background: linear-gradient(135deg, #42a5f5, #1976d2);
+            background: linear-gradient(135deg, #42a5f5, #8bea7a);
         }
 
         .btn-admin {
@@ -352,7 +352,7 @@
 
         .status-info {
             background: #e3f2fd;
-            color: #1565c0;
+            color: #c0158d;
             border: 1px solid #2196f3;
         }
 
@@ -415,7 +415,7 @@
         }
 
         .camera-placeholder.active {
-            border: 2px solid #1976d2;
+            border: 2px solid #02060a;
             background: #000;
         }
 
@@ -442,7 +442,7 @@
         .scan-status {
             width: 300px;
             height: 200px;
-            background: #e3f2fd;
+            background: #76b9e9;
             border-radius: 15px;
             display: flex;
             flex-direction: column;
@@ -458,7 +458,7 @@
         .scan-frame {
             width: 60px;
             height: 60px;
-            border: 3px solid #1976d2;
+            border: 3px solid #7aa5cf;
             border-radius: 10px;
             margin-bottom: 15px;
             animation: scanPulse 1s infinite;
@@ -466,7 +466,7 @@
 
         @keyframes scanPulse {
             0% {
-                border-color: #1976d2;
+                border-color: #8b0d0d;
             }
 
             50% {
@@ -479,7 +479,7 @@
         }
 
         .scan-status h4 {
-            color: #1976d2;
+            color: #eaedf0;
             margin-bottom: 10px;
         }
 
@@ -597,7 +597,7 @@
         }
 
         .sidebar h2 {
-            color: #1976d2;
+            color: #b41070;
             font-size: 1.5rem;
             margin-bottom: 30px;
         }
@@ -615,7 +615,7 @@
 
         .sidebar-item:hover {
             background: rgba(25, 118, 210, 0.1);
-            color: #1976d2;
+            color: #e37171;
         }
 
         .dashboard-content {
@@ -681,7 +681,7 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
-            color: #1976d2;
+            color: #79b3ec;
             backdrop-filter: blur(10px);
         }
 
@@ -735,13 +735,13 @@
 
         <div class="main-container">
             <div class="left-section">
-                <h1 class="hero-title">Smart Attendance,<br>Seamlessly</h1>
-                <h2 class="hero-subtitle">Cloud-Powered</h2>
+                <h1 class="hero-title">Attendance Logger,<br>System</h1>
+                <h2 class="hero-subtitle">AWS-Powered</h2>
 
                 <ul class="features">
                     <li>Face Recognition</li>
-                    <li>Serverless AWS</li>
-                    <li>Attendance Analytics</li>
+                    <li>Serverless Attendance</li>
+                    <li>Record Analytics</li>
                 </ul>
 
                 <div class="action-buttons">
@@ -772,7 +772,7 @@
             style="display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column;">
             <div style="text-align: center; margin-bottom: 40px;">
                 <div
-                    style="width: 60px; height: 60px; background: #1976d2; border-radius: 12px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                    style="width: 60px; height: 60px; background: #5a80a5; border-radius: 12px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
                     😊</div>
                 <h1 style="color: #333; font-size: 2rem; margin-bottom: 10px;">Attendify</h1>
             </div>
@@ -992,8 +992,12 @@
     <canvas id="canvas" style="display: none;"></canvas>
 
     <script>
+
         // Configuration - Replace with your actual Lambda Function URL
-        const LAMBDA_ENDPOINT = 'YOUR_LAMBDA_FUNCTION_URL';
+         const LAMBDA_ENDPOINT = 'https://o074egqp48.execute-api.us-east-1.amazonaws.com/prod';
+        const ADMIN_CREDENTIALS = { email: 'admin@company.com', password: 'admin123' };
+       //  const markUrl = "https://3lmj7b85tl.execute-api.us-east-1.amazonaws.com/prod/markAttendance";
+    const getUrl = "https://3lmj7b85tl.execute-api.us-east-1.amazonaws.com/prod/getAttendance";
 
         // Global state
         let attendanceData = [];
@@ -1040,7 +1044,7 @@
                 setTimeout(() => {
                     currentUser = {
                         email: 'user@example.com',
-                        name: 'John Doe',
+                        name: 'Neeraj',
                         cognitoId: 'us-east-1:12345678-1234-1234-1234-123456789012'
                     };
                     showAttendancePage();
@@ -1429,10 +1433,11 @@
             updateDashboardData();
 
             // Check if Lambda endpoint is configured
-            if (LAMBDA_ENDPOINT === 'YOUR_LAMBDA_FUNCTION_URL') {
+            if (LAMBDA_ENDPOINT === 'https://o074egqp48.execute-api.us-east-1.amazonaws.com/prodL') {
                 console.warn('⚠️ Please configure your Lambda function URL in the JavaScript code');
             }
         });
+        
 
         // Cleanup on page unload
         window.onbeforeunload = function () {
@@ -1440,5 +1445,3 @@
         };
     </script>
 </body>
-
-</html>
